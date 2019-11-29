@@ -12,6 +12,7 @@
         <module>aes</module>
         <module>des</module>
         <module>elliptic-curve</module>
+        <module>stribog</module>
     </modules>
 
 

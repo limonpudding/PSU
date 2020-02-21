@@ -13,6 +13,8 @@
         <module>des</module>
         <module>elliptic-curve</module>
         <module>stribog</module>
+        <module>analyse_crypto</module>
+        <module>kuznechik_breaking</module>
     </modules>
 
 

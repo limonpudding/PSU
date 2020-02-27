@@ -59,13 +59,15 @@ public class Break {
         k1 = breakKuznechik(0);
         k2 = breakKuznechik(1);
 
-        System.out.println("Добытый мастер ключ");
+        System.out.print("Заданный ключ шифрования: ");
+        printAsHex(masterKey);
+        System.out.print("Полученный мастер ключ: ");
         byte[] newMasterKey = solderKeyParts(k1, k2);
         printAsHex(newMasterKey);
         if (Arrays.equals(newMasterKey, masterKey)) {
-            System.out.println("Успешно");
+            System.out.println("Полученный ключ совпадает с заданным ключом шифрования!");
         } else {
-            System.out.println("Неудача");
+            System.out.println("Ключи не совпадают!");
         }
     }
 

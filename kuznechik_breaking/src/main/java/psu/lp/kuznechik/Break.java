@@ -10,39 +10,39 @@ public class Break {
 
     static byte[] breakKuznechik(int iterFalse) {
         byte[] plainText = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        byte[] temp;
+        byte[] tmpByte;
         byte[] result = new byte[16];
 
         for (int i = 0; i < 16; i++) {
             for (int j = 0; j < 256; j++) {
                 plainText[i] = (byte) j;
-                temp = Arrays.copyOf(plainText, plainText.length);
+                tmpByte = Arrays.copyOf(plainText, plainText.length);
                 for (int k = 0; k < iterFalse; k++) {
-                    temp = Kuznechik.kuzX(temp, iterKey[k]);
-                    temp = Kuznechik.kuzS(temp);
-                    temp = Kuznechik.kuzL(temp);
+                    tmpByte = Kuznechik.kuzX(tmpByte, iterKey[k]);
+                    tmpByte = Kuznechik.kuzS(tmpByte);
+                    tmpByte = Kuznechik.kuzL(tmpByte);
                 }
-                temp = Kuznechik.kuzX(temp, iterKey[iterFalse]);
-                temp = Kuznechik.kuzS(temp);
-                temp[i] = 0;
-                temp = Kuznechik.kuzL(temp);
+                tmpByte = Kuznechik.kuzX(tmpByte, iterKey[iterFalse]);
+                tmpByte = Kuznechik.kuzS(tmpByte);
+                tmpByte[i] = 0;
+                tmpByte = Kuznechik.kuzL(tmpByte);
                 for (int k = iterFalse + 1; k < 9; k++) {
-                    temp = Kuznechik.kuzX(temp, iterKey[k]);
-                    temp = Kuznechik.kuzS(temp);
-                    temp = Kuznechik.kuzL(temp);
+                    tmpByte = Kuznechik.kuzX(tmpByte, iterKey[k]);
+                    tmpByte = Kuznechik.kuzS(tmpByte);
+                    tmpByte = Kuznechik.kuzL(tmpByte);
                 }
-                temp = Kuznechik.kuzX(temp, iterKey[9]);
-                if (Arrays.equals(temp, (kuznechik.encrypt(plainText)))) {
+                tmpByte = Kuznechik.kuzX(tmpByte, iterKey[9]);
+                if (Arrays.equals(tmpByte, (kuznechik.encrypt(plainText)))) {
                     switch (iterFalse) {
                         case 0:
                             result[i] = (byte) (plainText[i] ^ Kuznechik.reverse_Pi[0]);
                             break;
                         case 1:
-                            byte[] temp2 = plainText;
-                            temp2 = Kuznechik.kuzX(temp2, iterKey[0]);
-                            temp2 = Kuznechik.kuzS(temp2);
-                            temp2 = Kuznechik.kuzL(temp2);
-                            result[i] = (byte) (temp2[i] ^ Kuznechik.reverse_Pi[0]);
+                            byte[] tmpByte2 = plainText;
+                            tmpByte2 = Kuznechik.kuzX(tmpByte2, iterKey[0]);
+                            tmpByte2 = Kuznechik.kuzS(tmpByte2);
+                            tmpByte2 = Kuznechik.kuzL(tmpByte2);
+                            result[i] = (byte) (tmpByte2[i] ^ Kuznechik.reverse_Pi[0]);
                             break;
                     }
                     break;

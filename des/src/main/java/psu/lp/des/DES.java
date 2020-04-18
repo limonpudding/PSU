@@ -60,10 +60,6 @@ public class DES {
             34, 53, 46, 42, 50, 36, 29, 32
     };
 
-    private static byte[] shift = new byte[]{1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
-
-    private static List<byte[]> keys;
-
     private static byte[][][] S = new byte[][][]{
             {
                     {14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7},
@@ -115,64 +111,53 @@ public class DES {
             }
     };
 
-    private static byte[] P = new byte[]{
+    public static byte[] P = new byte[]{
             16, 7, 20, 21, 29, 12, 28, 17,
             1, 15, 23, 26, 5, 18, 31, 10,
             2, 8, 24, 14, 32, 27, 3, 9,
             19, 13, 30, 6, 22, 11, 4, 25
     };
 
-    public static void main(String[] args) {
-        String word = "";
-        String key = "";
-        Scanner in = new Scanner(System.in);
-        while (key.length() != 7) {
-            System.out.println("Введите ключ из 7 символов:");
-            key = in.nextLine();
-        }
+    private static byte[] shift = new byte[]{1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
-        while (word.length() != 8) {
-            System.out.println("Введите фразу из 8 символов для шифрования:");
-            word = in.nextLine();
-        }
+    private List<byte[]> keys;
 
-        byte[] binaryWord = wordToBinaryAsByteArray(word);
-        System.out.print("Исходное слово в двоичной записи:\n    ");
-        for (int i = 0; i < binaryWord.length; i++) {
-            System.out.print(binaryWord[i]);
-        }
-        System.out.println();
+    private String mainKey;
 
-        keys = generateKeys(key);
+    private int hammingWeight;
 
-        byte[] encrypted = encryptDES(binaryWord);
-        System.out.print("Шифр слова в двоичной записи:\n    ");
-        StringBuilder encryptedS = new StringBuilder();
-        for (int i = 0; i < encrypted.length; i++) {
-            System.out.print(encrypted[i]);
-            encryptedS.append(encrypted[i]);
-        }
-        System.out.println();
-        System.out.print("Зашифрованное слово в виде символов:\n    ");
-        for (int i = 0; i < 8; i++) {
-            char c = (char) Integer.parseInt(encryptedS.substring(i*8, i*8+8), 2);
-            System.out.print(c);
-        }
-        System.out.println();
+    private boolean enableThreadSleep;
 
-        byte[] decrypted = decryptDES(encrypted);
-        System.out.print("Расшифрованное слово в двоичной записи:\n    ");
-        for (int i = 0; i < decrypted.length; i++) {
-            System.out.print(decrypted[i]);
-        }
-        System.out.println();
-
-        if (Arrays.equals(binaryWord, decrypted)) {
-            System.out.println("Расшифрованное слово совпадает с исходным! Шифрование и расшифрование работает корректно.");
-        }
+    public DES(String mainKey) {
+        this.mainKey = mainKey;
+        this.hammingWeight = 0;
+        this.enableThreadSleep = false;
     }
 
-    private static byte[] decryptDES(byte[] binaryWord) {
+    public byte[] encryptDES(byte[] binaryWord) {
+        generateKeys();
+        hammingWeight = 0;
+        binaryWord = initIP(binaryWord);
+        byte[] L = Arrays.copyOfRange(binaryWord, 0, 32);
+        byte[] R = Arrays.copyOfRange(binaryWord, 32, 64);
+        byte[] newL;
+        byte[] newR;
+        for (int i = 0; i < 16; i++) {
+            newL = Arrays.copyOf(R, 32);
+            newR = xorBytes(roundFunction(R, i), L);
+            L = newL;
+            R = newR;
+        }
+        binaryWord = new byte[64];
+        System.arraycopy(L, 0, binaryWord, 0, 32);
+        System.arraycopy(R, 0, binaryWord, 32, 32);
+        binaryWord = finalIP(binaryWord);
+        return binaryWord;
+    }
+
+    public byte[] decryptDES(byte[] binaryWord) {
+        generateKeys();
+        hammingWeight = 0;
         binaryWord = initIP(binaryWord);
         byte[] L = Arrays.copyOfRange(binaryWord, 0, 32);
         byte[] R = Arrays.copyOfRange(binaryWord, 32, 64);
@@ -184,38 +169,6 @@ public class DES {
             L = newL;
             R = newR;
         }
-        binaryWord = new byte[64];
-        System.arraycopy(L, 0, binaryWord, 0, 32);
-        System.arraycopy(R, 0, binaryWord, 32, 32);
-        binaryWord = finalIP(binaryWord);
-        return binaryWord;
-    }
-
-    private static byte[] encryptDES(byte[] binaryWord) {
-        binaryWord = initIP(binaryWord);
-        byte[] L = Arrays.copyOfRange(binaryWord, 0, 32);
-        byte[] R = Arrays.copyOfRange(binaryWord, 32, 64);
-        byte[] newL;
-        byte[] newR;
-        System.out.println("Циклы шифрования:");
-        for (int i = 0; i < 16; i++) {
-            newL = Arrays.copyOf(R, 32);
-            newR = xorBytes(roundFunction(R, i), L);
-            L = newL;
-            R = newR;
-            System.out.println("  Итерация " + (i+1));
-            System.out.print("    L: ");
-            for (int j = 0; j < 32; j++) {
-                System.out.print(L[j]);
-            }
-            System.out.println();
-            System.out.print("    R: ");
-            for (int j = 0; j < 32; j++) {
-                System.out.print(R[j]);
-            }
-            System.out.println();
-        }
-        System.out.println();
         binaryWord = new byte[64];
         System.arraycopy(L, 0, binaryWord, 0, 32);
         System.arraycopy(R, 0, binaryWord, 32, 32);
@@ -239,7 +192,7 @@ public class DES {
         return transposed;
     }
 
-    private static byte[] wordToBinaryAsByteArray(String word) {
+    public static byte[] wordToBinaryAsByteArray(String word) {
         byte[] binary = new byte[word.length() * 8];
         String binaryLetter;
         for (int i = 0; i < word.length(); i++) {
@@ -259,8 +212,8 @@ public class DES {
         return binaryLetter;
     }
 
-    private static List<byte[]> generateKeys(String key) {
-        byte[] binaryKey56 = wordToBinaryAsByteArray(key);
+    private void generateKeys() {
+        byte[] binaryKey56 = wordToBinaryAsByteArray(mainKey);
         byte[] binaryKey64 = new byte[64];
         int count = 0;
         for (int i = 0; i < 8; i++) {
@@ -274,26 +227,13 @@ public class DES {
             count = 0;
         }
 
-        System.out.print("Ключ после добавления битов четности:\n    ");
-        for (int i = 0; i < 64; i++) {
-            System.out.print(binaryKey64[i]);
-        }
-        System.out.println();
-
         for (int i = 0; i < 56; i++) {
             binaryKey56[i] = binaryKey64[initCD[i]-1];
         }
 
-        System.out.print("Ключ после начальной перестановки:\n    ");
-        for (int i = 0; i < 56; i++) {
-            System.out.print(binaryKey56[i]);
-        }
-        System.out.println();
-
         byte[] C = Arrays.copyOfRange(binaryKey56, 0, 28);
         byte[] D = Arrays.copyOfRange(binaryKey56, 28, 56);
-        List<byte[]> keys = new ArrayList<>();
-        System.out.println("\nГенерация ключей:");
+        keys = new ArrayList<>();
         for (int i = 0; i < 16; i++) {
             byte[] shiftedC = shiftKey(C, shift[i]);
             byte[] shiftedD = shiftKey(D, shift[i]);
@@ -305,19 +245,12 @@ public class DES {
                 roundKey48[j] = roundKey56[roundKeyPermut[j] - 1];
             }
             keys.add(roundKey48);
-            System.out.print("    K" + i + ": ");
-            for (int j = 0; j < 48; j++) {
-                System.out.print(roundKey48[j]);
-            }
-            System.out.println();
             C = Arrays.copyOf(shiftedC, 28);
             D = Arrays.copyOf(shiftedD, 28);
         }
-        System.out.println();
-        return keys;
     }
 
-    private static byte[] shiftKey(byte[] key, byte amount) {
+    private byte[] shiftKey(byte[] key, byte amount) {
         int keyLength = key.length;
         byte[] newKey = new byte[keyLength];
         for (int i = 0; i < keyLength; i++) {
@@ -326,7 +259,7 @@ public class DES {
         return newKey;
     }
 
-    private static byte[] functionE(byte[] R) {
+    public byte[] functionE(byte[] R) {
         byte[] expanded = new byte[48];
         for (int i = 0; i < 48; i++) {
             expanded[i] = R[expandE[i] - 1];
@@ -334,7 +267,7 @@ public class DES {
         return expanded;
     }
 
-    private static byte[] roundFunction(byte[] R, int iterationNum) {
+    private byte[] roundFunction(byte[] R, int iterationNum) {
         byte[] E = functionE(R);
         byte[] roundKey = keys.get(iterationNum);
         byte[] xor = xorBytes(E, roundKey);
@@ -344,14 +277,28 @@ public class DES {
             b = permutS(Arrays.copyOfRange(xor, i * 6, i * 6 + 6), i);
             System.arraycopy(b, 0, B, i * 4, 4);
         }
+        return functionP(B);
+    }
+
+    private byte[] functionP(byte[] b) {
         byte[] result = new byte[32];
-        for (int i = 0; i < 32; i++) {
-            result[i] = B[P[i] - 1];
+        try {
+            for (int i = 0; i < 32; i++) {
+                if (b[P[i] - 1] == 1) {
+                    hammingWeight += 1;
+                    result[i] = b[P[i] - 1];
+                    if (enableThreadSleep) {
+                        Thread.sleep(5);
+                    }
+                }
+            }
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
         }
         return result;
     }
 
-    private static byte[] permutS(byte[] b, int part) {
+    public byte[] permutS(byte[] b, int part) {
         int p = Integer.parseInt(Integer.toString(b[0] * 10 + b[5]), 2);
         int q = Integer.parseInt(Integer.toString(b[1] * 1000 + b[2] * 100 + b[3] * 10 + b[4]), 2);
         byte[] s = new byte[4];
@@ -365,11 +312,31 @@ public class DES {
         return s;
     }
 
-    private static byte[] xorBytes(byte[] a, byte[] b) {
+    public byte[] xorBytes(byte[] a, byte[] b) {
         byte[] result = new byte[a.length];
         for (int i = 0; i < a.length; i++) {
             result[i] = (byte) (a[i] ^ b[i]);
         }
         return result;
+    }
+
+    public String getMainKey() {
+        return mainKey;
+    }
+
+    public void setMainKey(String mainKey) {
+        this.mainKey = mainKey;
+    }
+
+    public int getHammingWeight() {
+        return hammingWeight;
+    }
+
+    public boolean isEnableThreadSleep() {
+        return enableThreadSleep;
+    }
+
+    public void setEnableThreadSleep(boolean enableThreadSleep) {
+        this.enableThreadSleep = enableThreadSleep;
     }
 }

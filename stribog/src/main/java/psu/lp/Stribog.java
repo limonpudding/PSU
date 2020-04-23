@@ -1,5 +1,7 @@
 package psu.lp;
 
+import java.math.BigInteger;
+
 public class Stribog {
 
     public static int[][] A = {
@@ -120,7 +122,7 @@ public class Stribog {
 
     protected int[] iv;
 
-    Stribog() {
+    public Stribog() {
         num512 = new int[64];
         num512[62] = 0x02;
         v00 = new int[64];
@@ -241,5 +243,13 @@ public class Stribog {
             r = ((a[i] + b[i]) >> 8) & 255;
         }
         return result;
+    }
+
+    public static BigInteger hashToBigInteger(int[] hash) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hash.length; i++) {
+            sb.append(String.format("%04d", hash[i]));
+        }
+        return new BigInteger(sb.toString());
     }
 }
